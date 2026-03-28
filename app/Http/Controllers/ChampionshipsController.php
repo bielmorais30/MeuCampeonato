@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreChampionshipRequest;
 use App\Models\Championship;
 use Illuminate\Http\Request;
+use App\Http\Requests\UpdateChampionshipRequest;
 
 class ChampionshipsController extends Controller
 {
@@ -16,20 +18,14 @@ class ChampionshipsController extends Controller
         return response()->json($championships, 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreChampionshipRequest $request)
     {
-        //
+        $championship = Championship::create($request->validated());
+        return response()->json($championship, 201);
     }
 
     /**
@@ -37,23 +33,17 @@ class ChampionshipsController extends Controller
      */
     public function show(Championship $championship)
     {
-        //
+        return response()->json($championship, 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Championship $championship)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Championship $championship)
+    public function update(UpdateChampionshipRequest $request, Championship $championship)
     {
-        //
+        $championship->update($request->validated());
+        return response()->json($championship, 200);
     }
 
     /**
