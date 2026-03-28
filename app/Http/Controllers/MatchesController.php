@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Matches;
+use App\Models\ChampionshipMatch;
 use Illuminate\Http\Request;
 
 class MatchesController extends Controller
@@ -34,7 +34,7 @@ class MatchesController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Matches $matches)
+    public function show(ChampionshipMatch $championshipMatch)
     {
         //
     }
@@ -42,7 +42,7 @@ class MatchesController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Matches $matches)
+    public function edit(ChampionshipMatch $championshipMatch)
     {
         //
     }
@@ -50,7 +50,7 @@ class MatchesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Matches $matches)
+    public function update(Request $request, ChampionshipMatch $championshipMatch)
     {
         //
     }
@@ -58,7 +58,7 @@ class MatchesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Matches $matches)
+    public function destroy(ChampionshipMatch $championshipMatch)
     {
         //
     }

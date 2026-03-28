@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Model;
 
-class Teams extends Model
+class Team extends Model
 {
     use HasFactory;
 
@@ -17,16 +17,16 @@ class Teams extends Model
 
     public function registrations(): HasMany
     {
-        return $this->hasMany(Registrations::class, 'team_id');
+        return $this->hasMany(Registration::class, 'team_id');
     }
 
     public function standings(): HasMany
     {
-        return $this->hasMany(Standings::class, 'team_id');
+        return $this->hasMany(Standing::class, 'team_id');
     }
 
     public function championships(): BelongsToMany
     {
-        return $this->belongsToMany(Championships::class, 'registrations', 'team_id', 'championship_id')->withTimestamps();
+        return $this->belongsToMany(Championship::class, 'registrations', 'team_id', 'championship_id')->withTimestamps();
     }
 }

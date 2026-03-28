@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Standings;
+use App\Models\Standing;
 use Illuminate\Http\Request;
 
 class StandingsController extends Controller
@@ -34,7 +34,7 @@ class StandingsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Standings $standings)
+    public function show(Standing $standing)
     {
         //
     }
@@ -42,7 +42,7 @@ class StandingsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Standings $standings)
+    public function edit(Standing $standing)
     {
         //
     }
@@ -50,7 +50,7 @@ class StandingsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Standings $standings)
+    public function update(Request $request, Standing $standing)
     {
         //
     }
@@ -58,7 +58,7 @@ class StandingsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Standings $standings)
+    public function destroy(Standing $standing)
     {
         //
     }

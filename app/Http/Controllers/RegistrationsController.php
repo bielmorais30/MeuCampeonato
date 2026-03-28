@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Registrations;
+use App\Models\Registration;
 use Illuminate\Http\Request;
 
 class RegistrationsController extends Controller
@@ -34,7 +34,7 @@ class RegistrationsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Registrations $registrations)
+    public function show(Registration $registration)
     {
         //
     }
@@ -42,7 +42,7 @@ class RegistrationsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Registrations $registrations)
+    public function edit(Registration $registration)
     {
         //
     }
@@ -50,7 +50,7 @@ class RegistrationsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Registrations $registrations)
+    public function update(Request $request, Registration $registration)
     {
         //
     }
@@ -58,7 +58,7 @@ class RegistrationsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Registrations $registrations)
+    public function destroy(Registration $registration)
     {
         //
     }

@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Registrations extends Model
+class Registration extends Model
 {
     use HasFactory;
 
@@ -17,11 +17,11 @@ class Registrations extends Model
 
     public function championship(): BelongsTo
     {
-        return $this->belongsTo(Championships::class, 'championship_id');
+        return $this->belongsTo(Championship::class, 'championship_id');
     }
 
     public function team(): BelongsTo
     {
-        return $this->belongsTo(Teams::class, 'team_id');
+        return $this->belongsTo(Team::class, 'team_id');
     }
 }

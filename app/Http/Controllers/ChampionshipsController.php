@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Championships;
+use App\Models\Championship;
 use Illuminate\Http\Request;
 
 class ChampionshipsController extends Controller
@@ -12,7 +12,8 @@ class ChampionshipsController extends Controller
      */
     public function index()
     {
-        //
+        $championships = Championship::with('teams')->get();
+        return response()->json($championships, 200);
     }
 
     /**
@@ -34,7 +35,7 @@ class ChampionshipsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Championships $championships)
+    public function show(Championship $championship)
     {
         //
     }
@@ -42,7 +43,7 @@ class ChampionshipsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Championships $championships)
+    public function edit(Championship $championship)
     {
         //
     }
@@ -50,7 +51,7 @@ class ChampionshipsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Championships $championships)
+    public function update(Request $request, Championship $championship)
     {
         //
     }
@@ -58,7 +59,7 @@ class ChampionshipsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Championships $championships)
+    public function destroy(Championship $championship)
     {
         //
     }
