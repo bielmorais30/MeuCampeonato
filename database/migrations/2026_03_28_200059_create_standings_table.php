@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('standings', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('championship_id')->constrained('championships')->onDelete('cascade');
+            $table->foreignId('team_id')->constrained('teams')->onDelete('cascade');
+            $table->integer('points')->default(0);
+            $table->integer('goal_scored')->default(0);
+            $table->integer('goal_conceded')->default(0);
             $table->timestamps();
         });
     }

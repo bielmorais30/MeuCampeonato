@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('championships', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->enum('status', ['pending', 'running', 'finished'])->default('pending');
             $table->timestamps();
         });
     }

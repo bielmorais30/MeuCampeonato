@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('matches', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('championship_id')->constrained('championships')->onDelete('cascade');
+            $table->enum('phase', ['quarter', 'semi', 'third_place', 'final'])->default('quarter');
             $table->timestamps();
         });
     }
