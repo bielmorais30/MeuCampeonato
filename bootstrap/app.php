@@ -31,6 +31,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 404);
             }
 
-            return null;
+            // Tratando response caso não encontre a rota solicitada
+            return response()->json([ 
+                'message' => 'Recurso não encontrado.',
+            ], 404);
+
+
         });
     })->create();
