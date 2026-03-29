@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RegisterTeamsRequest;
 use App\Http\Requests\RegisterMultipleTeamsRequest;
 use App\Models\Championship;
+use App\Models\ChampionshipMatch;
 use App\Models\Registration;
 use App\Models\Standing;
 use Illuminate\Http\Request;
@@ -29,11 +30,7 @@ class RegistrationsController extends Controller
             'losses' => 0,
         ]);
 
-        // Verificar se o campeonato completou 8 times e atualizar status para 'running'
-        $totalTeams = Registration::where('championship_id', $championship->id)->count();
-        if ($totalTeams === 8) {
-            $championship->update(['status' => 'running']);
-        }
+        $this->startChampionshipIfReady($championship);
 
         $response = [
             'message' => 'Equipe registrada com sucesso no campeonato: ' . $championship->name,
@@ -65,11 +62,7 @@ class RegistrationsController extends Controller
             $registrations[] = $registration;
         }
 
-        // Verificar se o campeonato completou 8 times e atualizar status para 'running'
-        $totalTeams = Registration::where('championship_id', $championship->id)->count();
-        if ($totalTeams === 8) {
-            $championship->update(['status' => 'running']);
-        }
+        $this->startChampionshipIfReady($championship);
 
         $response = [
             'message' => count($registrations) . ' equipes registradas com sucesso no campeonato: ' . $championship->name,
@@ -77,5 +70,40 @@ class RegistrationsController extends Controller
         ];
 
         return response()->json($response, 201);
+    }
+
+    private function startChampionshipIfReady(Championship $championship): void
+    {
+        $totalTeams = Registration::where('championship_id', $championship->id)->count();
+
+        if ($totalTeams !== 8) {
+            return;
+        }
+
+        if ($championship->status !== 'running') {
+            $championship->update(['status' => 'running']);
+        }
+
+        $hasMatches = ChampionshipMatch::where('championship_id', $championship->id)->exists();
+
+        if ($hasMatches) {
+            return;
+        }
+
+        $phases = [
+            ['phase' => 'quarter', 'quantity' => 4],
+            ['phase' => 'semi', 'quantity' => 2],
+            ['phase' => 'third_place', 'quantity' => 1],
+            ['phase' => 'final', 'quantity' => 1],
+        ];
+
+        foreach ($phases as $phase) {
+            for ($i = 0; $i < $phase['quantity']; $i++) {
+                ChampionshipMatch::create([
+                    'championship_id' => $championship->id,
+                    'phase' => $phase['phase'],
+                ]);
+            }
+        }
     }
 }
