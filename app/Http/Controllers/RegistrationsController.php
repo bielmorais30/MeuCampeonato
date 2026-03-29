@@ -105,5 +105,27 @@ class RegistrationsController extends Controller
                 ]);
             }
         }
+
+        Registration::where('championship_id', $championship->id)
+            ->inRandomOrder()
+            ->pluck('team_id')
+            ->values()
+            ->chunk(2)
+            ->each(function ($teamIds) use ($championship) {
+            $pair = $teamIds->values(); // pega os IDs dos times faz seu index começar do zero
+
+            $match = ChampionshipMatch::where('championship_id', $championship->id)
+                ->where('phase', 'quarter')
+                ->whereNull('team_home_id')
+                ->whereNull('team_away_id')
+                ->first();
+
+            if ($match) {
+                $match->update([
+                    'team_home_id' => $pair->get(0),
+                    'team_away_id' => $pair->get(1),
+                ]);
+            }
+        });
     }
 }

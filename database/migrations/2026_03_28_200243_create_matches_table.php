@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('championship_id')->constrained('championships')->onDelete('cascade');
             $table->enum('phase', ['quarter', 'semi', 'third_place', 'final'])->default('quarter');
-            $table->integer('order');
+            $table->integer('order')->nullable();
             $table->foreignId('team_home_id')->nullable()->constrained('teams');
             $table->foreignId('team_away_id')->nullable()->constrained('teams');
             $table->integer('goals_home')->nullable();

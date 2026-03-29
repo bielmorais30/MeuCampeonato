@@ -15,6 +15,12 @@ class ChampionshipMatch extends Model
     protected $fillable = [
         'championship_id',
         'phase',
+        'order',
+        'team_home_id',
+        'team_away_id',
+        'goals_home',
+        'goals_away',
+        'winner_id'
     ];
 
     public function championship(): BelongsTo
