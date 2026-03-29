@@ -27,4 +27,14 @@ class ChampionshipMatch extends Model
     {
         return $this->belongsTo(Championship::class, 'championship_id');
     }
+
+    public function teamHome(): BelongsTo
+    {
+        return $this->belongsTo(Team::class, 'team_home_id');
+    }
+
+    public function teamAway(): BelongsTo
+    {
+        return $this->belongsTo(Team::class, 'team_away_id');
+    }
 }

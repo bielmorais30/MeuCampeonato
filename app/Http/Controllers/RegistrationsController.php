@@ -97,12 +97,15 @@ class RegistrationsController extends Controller
             ['phase' => 'final', 'quantity' => 1],
         ];
 
+        $counter = 1;
         foreach ($phases as $phase) {
             for ($i = 0; $i < $phase['quantity']; $i++) {
                 ChampionshipMatch::create([
                     'championship_id' => $championship->id,
                     'phase' => $phase['phase'],
+                    'order' => $counter,
                 ]);
+                $counter++;
             }
         }
 
