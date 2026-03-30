@@ -14,8 +14,27 @@ class ChampionshipsController extends Controller
      */
     public function index()
     {
-        $championships = Championship::with('teams')->get();
-        return response()->json($championships, 200);
+        $championships = Championship::with([
+            'teams',
+            'matches' => function ($query) {
+                $query->whereIn('order', [8, 7, 6])->with('winner:id,name');
+            }
+        ])->get();
+
+        $response = $championships->map(function ($championship) {
+            $matchesByOrder = $championship->matches->keyBy('order');
+
+            return [
+                'championship' => $championship,
+                'winners' => [
+                    'terceiro' => $matchesByOrder->get(8)?->winner,
+                    'segundo' => $matchesByOrder->get(7)?->winner,
+                    'primeiro' => $matchesByOrder->get(6)?->winner,
+                ],
+            ];
+        });
+
+        return response()->json($response, 200);
     }
 
 
@@ -33,7 +52,20 @@ class ChampionshipsController extends Controller
      */
     public function show(Championship $championship)
     {
-        return response()->json($championship, 200);
+        $matches = $championship->matches()
+            ->whereIn('order', [8, 7, 6])
+            ->with('winner:id,name')
+            ->get()
+            ->keyBy('order');
+
+        return response()->json([
+            'championship' => $championship,
+            'winners' => [
+                'terceiro' => $matches->get(8)?->winner,
+                'segundo' => $matches->get(7)?->winner,
+                'primeiro' => $matches->get(6)?->winner,
+            ],
+        ], 200);
     }
 
 
