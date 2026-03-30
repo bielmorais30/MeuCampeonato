@@ -8,6 +8,7 @@ use App\Models\Championship;
 use App\Models\ChampionshipMatch;
 use App\Models\Registration;
 use App\Models\Standing;
+use App\Models\Team;
 use Illuminate\Http\Request;
 
 class RegistrationsController extends Controller
@@ -41,10 +42,10 @@ class RegistrationsController extends Controller
 
     public function registerMultiple(RegisterMultipleTeamsRequest $request, Championship $championship)
     {
-        $registrations = [];
+        $registeredTeamIds = [];
         
         foreach ($request->team_ids as $teamId) {
-            $registration = Registration::create([
+            Registration::create([
                 'championship_id' => $championship->id,
                 'team_id' => $teamId,
             ]);
@@ -59,8 +60,16 @@ class RegistrationsController extends Controller
                 'losses' => 0,
             ]);
 
-            $registrations[] = $registration;
+            $registeredTeamIds[] = $teamId;
         }
+
+        $teamNamesById = Team::whereIn('id', $registeredTeamIds)
+            ->pluck('name', 'id');
+
+        $registrations = collect($registeredTeamIds)
+            ->map(fn ($teamId) => $teamNamesById->get($teamId))
+            ->filter()
+            ->values();
 
         $this->startChampionshipIfReady($championship);
 
