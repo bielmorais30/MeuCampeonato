@@ -129,7 +129,7 @@ class RegistrationsApiTest extends TestCase
             'python3*' => Process::result("2\n0\n"),
         ]);
 
-        $response = $this->getJson('/api/championships/' . $championship->id . '/run-specific-match/' . $quarterMatch->id);
+        $response = $this->postJson('/api/championships/' . $championship->id . '/matches/' . $quarterMatch->id . '/play');
 
         $response->assertOk();
 
@@ -189,7 +189,7 @@ class RegistrationsApiTest extends TestCase
             'python3*' => Process::result("1\n1\n"),
         ]);
 
-        $response = $this->getJson('/api/championships/' . $championship->id . '/run-specific-match/' . $match->id);
+        $response = $this->postJson('/api/championships/' . $championship->id . '/matches/' . $match->id . '/play');
 
         $response
             ->assertOk()
@@ -252,7 +252,7 @@ class RegistrationsApiTest extends TestCase
             'python3*' => Process::result("3\n3\n"),
         ]);
 
-        $response = $this->getJson('/api/championships/' . $championship->id . '/run-specific-match/' . $match->id);
+        $response = $this->postJson('/api/championships/' . $championship->id . '/matches/' . $match->id . '/play');
 
         $response
             ->assertOk()
