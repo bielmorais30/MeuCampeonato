@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Championship;
 use App\Models\ChampionshipMatch;
 use App\Models\Standing;
+use App\Support\MatchRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Process as FacadesProcess;
 
@@ -74,55 +75,36 @@ class MatchesController extends Controller
         $homeRegistrationDate = $homeRegistration?->created_at;
         $awayRegistrationDate = $awayRegistration?->created_at;
 
-        $winnerId = null;
-
-        if ($goalsHome > $goalsAway) {
-
-            $winnerId = $match->team_home_id;
-            $teamWinnerName = $match->teamHome->name;
-        } elseif ($goalsAway > $goalsHome) {
-
-            $winnerId = $match->team_away_id;
-            $teamWinnerName = $match->teamAway->name;
-        } else {    // Empate                                          
         $homePoints = null;
         $awayPoints = null;
-        
+
         Standing::where('championship_id', $championshipId)
-        ->whereIn('team_id', [$match->team_home_id, $match->team_away_id]) 
-        ->get()
-        ->each(function ($standing) use ($match, &$homePoints, &$awayPoints) {
-            if ($standing->team_id == $match->team_home_id) {
-                $homePoints = $standing->points;
-            } else {
-                $awayPoints = $standing->points;
-            }
-        });
-
-        // desempate por pontos na tabela de classificação
-        if(isset($homePoints) && isset($awayPoints) and $homePoints != $awayPoints){ 
-            if($homePoints > $awayPoints){
-                $winnerId = $match->team_home_id;
-                $teamWinnerName = $match->teamHome->name;
-            } else {
-                $winnerId = $match->team_away_id;
-                $teamWinnerName = $match->teamAway->name;
-            }
-
-        } else {    // verificar qual time se registrou primeiro para desempatar
-                    
-                if ($homeRegistration && $awayRegistration && $homeRegistrationDate < $awayRegistrationDate) {
-                    $winnerId = $match->team_home_id;
-                    $teamWinnerName = $match->teamHome->name;
-                } elseif ($homeRegistration && !$awayRegistration) {
-                    $winnerId = $match->team_home_id;
-                    $teamWinnerName = $match->teamHome->name;
+            ->whereIn('team_id', [$match->team_home_id, $match->team_away_id])
+            ->get()
+            ->each(function ($standing) use ($match, &$homePoints, &$awayPoints) {
+                if ($standing->team_id == $match->team_home_id) {
+                    $homePoints = $standing->points;
                 } else {
-                    $winnerId = $match->team_away_id;
-                    $teamWinnerName = $match->teamAway->name;
+                    $awayPoints = $standing->points;
                 }
-        }
-            }
+            });
+
+        $rules = app(MatchRules::class);
+
+        $winnerId = $rules->resolveWinnerId(
+            $match->team_home_id,
+            $match->team_away_id,
+            $goalsHome,
+            $goalsAway,
+            $homePoints,
+            $awayPoints,
+            $homeRegistrationDate,
+            $awayRegistrationDate,
+        );
+
+        $teamWinnerName = $winnerId === $match->team_home_id
+            ? $match->teamHome->name
+            : $match->teamAway->name;
 
         // Atualizar os resultados da partida
         $match->update([
@@ -149,21 +131,18 @@ class MatchesController extends Controller
 
 
         // Alocar vencedor na próxima fase
-        $nextOrder = [
-            1 => ['next_order' => 5, 'home_away' => "team_home_id"],
-            2 => ['next_order' => 5, 'home_away' => "team_away_id"],
-            3 => ['next_order' => 6, 'home_away' => "team_home_id"],
-            4 => ['next_order' => 6, 'home_away' => "team_away_id"],
-            5 => ['next_order' => 8, 'home_away' => "team_home_id"],
-            6 => ['next_order' => 8, 'home_away' => "team_away_id"],
-        ];
+        $nextOrder = $rules->nextSlotForOrder($match->order);
+
+        if (!$nextOrder) {
+            return response()->json(['message' => 'Partida finalizada sem próxima fase.'], 200);
+        }
 
         ChampionshipMatch::where('championship_id', $championshipId)
-            ->where('order', $nextOrder[$match->order]['next_order'])   // próxima fase
-            ->whereNull($nextOrder[$match->order]['home_away'])         // garantir que a vaga ainda não foi ocupada
+            ->where('order', $nextOrder['next_order'])   // próxima fase
+            ->whereNull($nextOrder['home_away'])         // garantir que a vaga que o time sera alocado ainda não foi ocupada
             ->first()
             ->update([
-                $nextOrder[$match->order]['home_away'] => $winnerId
+                $nextOrder['home_away'] => $winnerId
             ]);
 
         if($match->phase == "semi") {                                   // se for semifinal, o perdedor vai pra disputa de terceiro lugar
