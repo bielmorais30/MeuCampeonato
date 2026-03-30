@@ -76,24 +76,52 @@ class MatchesController extends Controller
         $winnerId = null;
 
         if ($goalsHome > $goalsAway) {
+
             $winnerId = $match->team_home_id;
             $teamWinnerName = $match->teamHome->name;
         } elseif ($goalsAway > $goalsHome) {
+
             $winnerId = $match->team_away_id;
             $teamWinnerName = $match->teamAway->name;
         } else {    // Empate                                          
-                    // verificar qual time se registrou primeiro para desempatar
-            if ($homeRegistration && $awayRegistration && $homeRegistrationDate < $awayRegistrationDate) {
-                $winnerId = $match->team_home_id;
-                $teamWinnerName = $match->teamHome->name;
-            } elseif ($homeRegistration && !$awayRegistration) {
+        $homePoints = null;
+        $awayPoints = null;
+        
+        Standing::where('championship_id', $championshipId)
+        ->whereIn('team_id', [$match->team_home_id, $match->team_away_id]) 
+        ->get()
+        ->each(function ($standing) use ($match, &$homePoints, &$awayPoints) {
+            if ($standing->team_id == $match->team_home_id) {
+                $homePoints = $standing->points;
+            } else {
+                $awayPoints = $standing->points;
+            }
+        });
+
+        // desempate por pontos na tabela de classificação
+        if(isset($homePoints) && isset($awayPoints) and $homePoints != $awayPoints){ 
+            if($homePoints > $awayPoints){
                 $winnerId = $match->team_home_id;
                 $teamWinnerName = $match->teamHome->name;
             } else {
                 $winnerId = $match->team_away_id;
                 $teamWinnerName = $match->teamAway->name;
             }
+
+        } else {    // verificar qual time se registrou primeiro para desempatar
+                    
+                if ($homeRegistration && $awayRegistration && $homeRegistrationDate < $awayRegistrationDate) {
+                    $winnerId = $match->team_home_id;
+                    $teamWinnerName = $match->teamHome->name;
+                } elseif ($homeRegistration && !$awayRegistration) {
+                    $winnerId = $match->team_home_id;
+                    $teamWinnerName = $match->teamHome->name;
+                } else {
+                    $winnerId = $match->team_away_id;
+                    $teamWinnerName = $match->teamAway->name;
+                }
         }
+            }
 
         // Atualizar os resultados da partida
         $match->update([
@@ -105,12 +133,16 @@ class MatchesController extends Controller
 
         if($match->phase == "third_place") { // se for disputa de terceiro lugar ou final, não tem próxima fase, então só atualiza o resultado e retorna
 
-            return response()->json(['message' => 'Terceiro lugar decidido.', 'winner' => $teamWinnerName, 'result' => $scores[0] . " X " . $scores[1]], 200);
+            return response()->json(['message'  => 'Terceiro lugar decidido.',
+                                     'winner'   => $teamWinnerName, 
+                                     'result'   => $scores[0] . " X " . $scores[1]], 200);
 
         }else if($match->phase == "final") { 
 
             Championship::find($championshipId)->update(['status' => 'finished']); // finalizando campeonato
-            return response()->json(['message' => 'Campeão decidido!', 'winner' => $teamWinnerName, 'result' => $scores[0] . " X " . $scores[1]], 200);
+            return response()->json(['message' => 'Campeão decidido!', 
+                                     'winner'  => $teamWinnerName, 
+                                     'result' => $scores[0] . " X " . $scores[1]], 200);
         }
 
 
@@ -133,12 +165,12 @@ class MatchesController extends Controller
                 $nextOrder[$match->order]['home_away'] => $winnerId
             ]);
 
-        if($match->phase == "semi") { // se for semifinal, o perdedor vai pra disputa de terceiro lugar
+        if($match->phase == "semi") {                                   // se for semifinal, o perdedor vai pra disputa de terceiro lugar
             $loserId = $match->team_home_id == $winnerId ? $match->team_away_id : $match->team_home_id;
 
 
             $thirdPlaceMatch = ChampionshipMatch::where('championship_id', $championshipId)
-                ->where('order', 7)                 // terceira fase
+                ->where('order', 7)                                     // terceira fase
                 ->first();
             
             if($match->order == 5){
@@ -174,7 +206,9 @@ class MatchesController extends Controller
                 $standing->save();
             });
 
-        return response()->json(['message' => 'Resultado da partida atualizado com sucesso', 'winner' => $teamWinnerName, 'result' => $scores[0] . " X " . $scores[1]], 200);
+        return response()->json(['message' => 'Resultado da partida atualizado com sucesso', 
+                                 'winner'  => $teamWinnerName, 
+                                 'result'  => $scores[0] . " X " . $scores[1]], 200);
     }
 
     // Função para sortear resultados da próxima partida  
