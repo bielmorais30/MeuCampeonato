@@ -17,5 +17,6 @@ Route::prefix('championships/{championship}/')->group(function () {
     Route::get('matches-bracket', [MatchesController::class, 'getBrackets']);
 
     Route::get('run-specific-match/{match}', [MatchesController::class, 'playSpecificMatch']);
+    Route::get('run-next-match', [MatchesController::class, 'playNextMatch']);
 
 });

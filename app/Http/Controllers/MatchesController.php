@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Championship;
 use App\Models\ChampionshipMatch;
 use App\Models\Standing;
 use Illuminate\Http\Request;
@@ -35,7 +36,7 @@ class MatchesController extends Controller
     }
 
     // Função para sortear resultados de uma partida específica 
-    public function playSpecificMatch(Request $request, $championshipId, $matchId)
+    public function playSpecificMatch($championshipId, $matchId)
     {
 
         $match = ChampionshipMatch::with([
@@ -101,12 +102,27 @@ class MatchesController extends Controller
             'winner_id' => $winnerId
         ]);
 
+
+        if($match->phase == "third_place") { // se for disputa de terceiro lugar ou final, não tem próxima fase, então só atualiza o resultado e retorna
+
+            return response()->json(['message' => 'Terceiro lugar decidido.', 'winner' => $teamWinnerName, 'result' => $scores[0] . " X " . $scores[1]], 200);
+
+        }else if($match->phase == "final") { 
+
+            Championship::find($championshipId)->update(['status' => 'finished']); // finalizando campeonato
+            return response()->json(['message' => 'Campeão decidido!', 'winner' => $teamWinnerName, 'result' => $scores[0] . " X " . $scores[1]], 200);
+        }
+
+
+
         // Alocar vencedor na próxima fase
         $nextOrder = [
             1 => ['next_order' => 5, 'home_away' => "team_home_id"],
             2 => ['next_order' => 5, 'home_away' => "team_away_id"],
             3 => ['next_order' => 6, 'home_away' => "team_home_id"],
             4 => ['next_order' => 6, 'home_away' => "team_away_id"],
+            5 => ['next_order' => 8, 'home_away' => "team_home_id"],
+            6 => ['next_order' => 8, 'home_away' => "team_away_id"],
         ];
 
         ChampionshipMatch::where('championship_id', $championshipId)
@@ -117,7 +133,26 @@ class MatchesController extends Controller
                 $nextOrder[$match->order]['home_away'] => $winnerId
             ]);
 
+        if($match->phase == "semi") { // se for semifinal, o perdedor vai pra disputa de terceiro lugar
+            $loserId = $match->team_home_id == $winnerId ? $match->team_away_id : $match->team_home_id;
 
+
+            $thirdPlaceMatch = ChampionshipMatch::where('championship_id', $championshipId)
+                ->where('order', 7)                 // terceira fase
+                ->first();
+            
+            if($match->order == 5){
+                $thirdPlaceMatch->update([
+                    'team_home_id' => $loserId
+                ]);
+            } else {
+                $thirdPlaceMatch->update([
+                    'team_away_id' => $loserId
+                ]);
+            }
+
+        }
+ 
         // Atualizar tabela de classificação
         Standing::where('championship_id', $championshipId)
             ->whereIn('team_id', [$match->team_home_id, $match->team_away_id]) // captura os dois 
@@ -140,5 +175,22 @@ class MatchesController extends Controller
             });
 
         return response()->json(['message' => 'Resultado da partida atualizado com sucesso', 'winner' => $teamWinnerName, 'result' => $scores[0] . " X " . $scores[1]], 200);
+    }
+
+    // Função para sortear resultados da próxima partida  
+    public function playNextMatch($championshipId)
+    {
+        $nextMatch = ChampionshipMatch::where('championship_id', $championshipId)
+            ->whereNull('winner_id')
+            ->whereNotNull('team_home_id')
+            ->whereNotNull('team_away_id')
+            ->orderBy('order')
+            ->first();
+
+        if (!$nextMatch) {
+            return response()->json(['message' => 'Partida não encontrada ou não atende aos requisitos.'], 404);
+        }
+
+        return $this->playSpecificMatch($championshipId, $nextMatch->id);
     }
 }
