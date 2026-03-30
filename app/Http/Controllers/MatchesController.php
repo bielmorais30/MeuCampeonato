@@ -20,6 +20,7 @@ class MatchesController extends Controller
             ->get();
 
         $matches = $matches->map(function ($match) {
+            
             return [
                 'id' => $match->id,
                 'order' => $match->order,
@@ -28,7 +29,7 @@ class MatchesController extends Controller
                 'team_away' => $match->teamAway ? $match->teamAway->name : null,
                 'goals_home' => $match->goals_home,
                 'goals_away' => $match->goals_away,
-                'winner_id' => $match->winner_id,
+                'winner' => ($match->winner_id) ? ($match->teamHome->id === $match->winner_id ? $match->teamHome->name : $match->teamAway->name) : null,
             ];
         });
 
