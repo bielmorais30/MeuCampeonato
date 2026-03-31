@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Championship;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -15,7 +17,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        Team::factory(12)->create();
+
+        Championship::factory(3)->pending()->create();
 
         User::factory()->create([
             'name' => 'Test User',
