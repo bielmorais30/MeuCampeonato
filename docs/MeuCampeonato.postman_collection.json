@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "0e41f7f5-d495-4b15-b380-4584e64a9d32",
+    "_postman_id": "cffe2302-9f76-411d-ab8e-d619afe056e1",
     "name": "MeuCampeonato API",
     "description": "Collection para testar a API do projeto MeuCampeonato.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "45381226",
-    "_collection_link": "https://go.postman.co/collection/45381226-0e41f7f5-d495-4b15-b380-4584e64a9d32?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/45381226-cffe2302-9f76-411d-ab8e-d619afe056e1?source=collection_link"
   },
   "item": [
     {
@@ -340,15 +340,16 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/championships/{{championship_id}}/run-specific-match/{{match_id}}",
+              "raw": "{{base_url}}/championships/{{championship_id}}/matches/{{match_id}}/play",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "championships",
                 "{{championship_id}}",
-                "run-specific-match",
-                "{{match_id}}"
+                "matches",
+                "{{match_id}}",
+                "play"
               ]
             }
           },
@@ -360,14 +361,15 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/championships/{{championship_id}}/run-next-match",
+              "raw": "{{base_url}}/championships/{{championship_id}}/matches/play-next",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "championships",
                 "{{championship_id}}",
-                "run-next-match"
+                "matches",
+                "play-next"
               ]
             }
           },
