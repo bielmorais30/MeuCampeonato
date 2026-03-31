@@ -11,30 +11,12 @@ class ChampionshipsController extends Controller
 {
     /**
      * Display a listing of the resource.
+     * Agora retorna apenas todos os campeonatos, sem detalhes de times ou partidas.
      */
     public function index()
     {
-        $championships = Championship::with([
-            'teams',
-            'matches' => function ($query) {
-                $query->whereIn('order', [8, 7, 6])->with('winner:id,name');
-            }
-        ])->get();
-
-        $response = $championships->map(function ($championship) {
-            $matchesByOrder = $championship->matches->keyBy('order');
-
-            return [
-                'championship' => $championship,
-                'winners' => [
-                    'terceiro' => $matchesByOrder->get(8)?->winner,
-                    'segundo' => $matchesByOrder->get(7)?->winner,
-                    'primeiro' => $matchesByOrder->get(6)?->winner,
-                ],
-            ];
-        });
-
-        return response()->json($response, 200);
+        $championships = Championship::all();
+        return response()->json($championships, 200);
     }
 
 
@@ -49,21 +31,45 @@ class ChampionshipsController extends Controller
 
     /**
      * Display the specified resource.
+     * Agora retorna detalhes completos, incluindo times e partidas com vencedores.
      */
     public function show(Championship $championship)
     {
-        $matches = $championship->matches()
-            ->whereIn('order', [8, 7, 6])
-            ->with('winner:id,name')
-            ->get()
-            ->keyBy('order');
+        $championship->load([
+            'teams',
+            'matches',
+            'matches.winner:id,name'
+        ]);
+
+        $matchesByOrder = $championship->matches->keyBy('order');
+
+        $championshipData = [
+            'id' => $championship->id,
+            'name' => $championship->name,
+            'status' => $championship->status,
+            'created_at' => $championship->created_at,
+            'updated_at' => $championship->updated_at,
+            'teams' => $championship->teams->map(function ($team) use ($championship) {
+                $points = null;
+                $standing = $team->standings()->where('championship_id', $championship->id)->first();
+                if ($standing) {
+                    $points = $standing->points;
+                }
+                return [
+                    'id' => $team->id,
+                    'name' => $team->name,
+                    'points' => $points,
+                ];
+            }),
+            'matches' => $championship->matches,
+        ];
 
         return response()->json([
-            'championship' => $championship,
+            'championship' => $championshipData,
             'winners' => [
-                'terceiro' => $matches->get(8)?->winner,
-                'segundo' => $matches->get(7)?->winner,
-                'primeiro' => $matches->get(6)?->winner,
+                'terceiro' => $matchesByOrder->get(6)?->winner,
+                'segundo' => $matchesByOrder->get(7)?->winner,
+                'primeiro' => $matchesByOrder->get(8)?->winner,
             ],
         ], 200);
     }
