@@ -12,6 +12,33 @@ use Illuminate\Support\Facades\Process as FacadesProcess;
 class MatchesController extends Controller
 {
     /**
+     * Retorna o campeão do campeonato, se finalizado.
+     */
+    private function getChampionResponse($championshipId)
+    {
+        $championship = Championship::find($championshipId);
+        if ($championship && $championship->status === 'finished') {
+            $finalMatch = ChampionshipMatch::where('championship_id', $championshipId)
+                ->where('phase', 'final')
+                ->whereNotNull('winner_id')
+                ->first();
+            if ($finalMatch) {
+                $winnerTeam = $finalMatch->teamHome && $finalMatch->teamHome->id === $finalMatch->winner_id
+                    ? $finalMatch->teamHome->name
+                    : ($finalMatch->teamAway ? $finalMatch->teamAway->name : null);
+                return response()->json([
+                    'message' => 'Campeonato já finalizado.',
+                    'winner' => $winnerTeam,
+                ], 200);
+            } else {
+                return response()->json([
+                    'message' => 'Campeonato já finalizado, mas não foi possível determinar o campeão.'
+                ], 200);
+            }
+        }
+        return null;
+    }
+    /**
      * Display a listing of the resource.
      */
     public function getBrackets(Request $request, $championshipId)
@@ -40,6 +67,10 @@ class MatchesController extends Controller
     // Função para sortear resultados de uma partida específica 
     public function playSpecificMatch($championshipId, $matchId)
     {
+        // Verifica se o campeonato já foi finalizado
+        if ($championResponse = $this->getChampionResponse($championshipId)) {
+            return $championResponse;
+        }
 
         $match = ChampionshipMatch::with([
             'teamHome.registrations' => function ($query) use ($championshipId) {
@@ -194,7 +225,13 @@ class MatchesController extends Controller
     // Função para sortear resultados da próxima partida  
     public function playNextMatch($championshipId)
     {
-        $nextMatch = ChampionshipMatch::where('championship_id', $championshipId)
+    
+    // Verifica se o campeonato já foi finalizado
+    if ($championResponse = $this->getChampionResponse($championshipId)) {
+        return $championResponse;
+    }
+
+    $nextMatch = ChampionshipMatch::where('championship_id', $championshipId)
             ->whereNull('winner_id')
             ->whereNotNull('team_home_id')
             ->whereNotNull('team_away_id')
