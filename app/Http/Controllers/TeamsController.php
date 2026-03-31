@@ -14,7 +14,7 @@ class TeamsController extends Controller
      */
     public function index()
     {
-        $teams = Team::with('championships')->get();
+        $teams = Team::all();
         return response()->json($teams, 200);
     }
 
@@ -32,7 +32,24 @@ class TeamsController extends Controller
      */
     public function show(Team $team)
     {
-        return response()->json($team, 200);
+        $team->load('championships');
+        $championships = $team->championships->map(function ($championship) {
+            return [
+                'id' => $championship->id,
+                'name' => $championship->name,
+                'status' => $championship->status,
+                'created_at' => $championship->created_at,
+                'updated_at' => $championship->updated_at,
+            ];
+        });
+        $teamData = [
+            'id' => $team->id,
+            'name' => $team->name,
+            'created_at' => $team->created_at,
+            'updated_at' => $team->updated_at,
+            'championships' => $championships,
+        ];
+        return response()->json($teamData, 200);
     }
 
 
